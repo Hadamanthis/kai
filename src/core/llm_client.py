@@ -14,8 +14,8 @@ class LLMClient:
         )
     
     def call(self, messages: list[BaseMessage]):
-        return self.model.invoke(messages)
+        return self.model.invoke(messages).content
     
     def call_structured(self, messages: list[BaseMessage], schema: type[T]) -> T:
         structured_llm = self.model.with_structured_output(schema)
-        return structured_llm.invoke(messages)
+        return structured_llm.invoke(messages).content
