@@ -14,13 +14,13 @@ class ChatResponse(BaseModel):
     content: str
 
 @router.post("/chat")
-def chat(request: ChatRequest) -> ChatResponse:
+async def chat(request: ChatRequest) -> ChatResponse:
     llm_client = LLMClient()
 
     graph = create_graph(llm_client)
 
     initial_state = KaiState(session_id=request.session_id, user_message=request.user_message)
 
-    state = graph.invoke(initial_state)
+    state = await graph.ainvoke(initial_state)
 
     return ChatResponse(content=state["response"])
