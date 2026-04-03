@@ -1,15 +1,22 @@
 from conversation.graph import create_graph
 from conversation.state import KaiState
 from core.llm_client import LLMClient
-from pydantic import BaseModel
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+from memory.repository import MemoryRepository
+from memory.service import MemoryService
+from core.embeddings import EmbeddingClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from core.settings import settings
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        memory_repository = MemoryRepository(Session(create_engine(settings.database_url)))
+        memory_service = MemoryService(memory_repository)
         llm_client = LLMClient()
 
-        graph = create_graph(llm_client)
+        graph = create_graph(llm_client, memory_service)
 
         telegram_chat_id = str(update.effective_chat.id)
 
