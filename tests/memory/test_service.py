@@ -26,3 +26,19 @@ def test_service_get_all_memory(db, embedding_client):
     assert len(memories) == 2
 
     assert memories[0].content == "Gosta de Python."
+
+def test_service_search_memory(db, embedding_client):
+    repository = MemoryRepository(db)
+    service = MemoryService(repository, embedding_client)
+
+    memory1 = Memory(content="Programação é muito legal.", session_id="teste_01")
+    service.save(memory1)
+    service.save(Memory(content="Carros de corrida são os melhores.", session_id="teste_01"))
+
+    memories = service.search("Amanhã eu irei programar.", limit=1)
+
+    assert len(memories) == 1
+    assert memories[0].content == "Programação é muito legal."
+
+
+        

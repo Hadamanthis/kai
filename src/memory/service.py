@@ -14,3 +14,7 @@ class MemoryService:
 
     def get_all(self) -> list[Memory]:
         return self.memory_repository.get_all()
+    
+    def search(self, message: str, limit: int = 5) -> list[Memory]:
+        embeddings = self.embedding_client.embed(message)
+        return self.memory_repository.search(embeddings, limit)
