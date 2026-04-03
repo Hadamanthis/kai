@@ -1,3 +1,4 @@
+from core.embeddings import EmbeddingClient
 import pytest
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
@@ -13,3 +14,7 @@ def db():
         yield session
 
     Base.metadata.drop_all(engine)
+
+@pytest.fixture(scope="session")
+def embedding_client():
+    return EmbeddingClient()
