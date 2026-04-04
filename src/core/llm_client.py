@@ -13,8 +13,11 @@ class LLMClient:
             api_key=settings.groq_api_key
         )
     
-    def call(self, messages: list[BaseMessage]):
+    def call(self, messages: list[BaseMessage]) -> str:
         return self.model.invoke(messages).content
+
+    def call_raw(self, messages: list[BaseMessage]) -> BaseMessage:
+        return self.model.invoke(messages)
     
     def call_structured(self, messages: list[BaseMessage], schema: type[T]) -> T:
         structured_llm = self.model.with_structured_output(schema)

@@ -18,7 +18,7 @@ def test_respository_save_memory(db, embedding_client):
     # Conteúdo correto
     assert saved[0].content == "Isso é um teste."
 
-def test_repository_search_memory(db, embedding_client):
+def test_repository_get_all_memory(db, embedding_client):
     repo = MemoryRepository(db)
 
     new_memory = Memory(content="Isso é um teste.", session_id="teste_01")
@@ -31,7 +31,7 @@ def test_repository_search_memory(db, embedding_client):
     # Foi salvo (existe no banco)
     assert len(saved) == 1
 
-def test_repository_search(db, embedding_client):
+def test_repository_semantic_search(db, embedding_client):
     repo = MemoryRepository(db)
 
     new_memory1 = Memory(content="Programação é muito legal.", session_id="teste_01")
@@ -49,7 +49,4 @@ def test_repository_search(db, embedding_client):
     assert len(memories) == 1
 
     assert memories[0].content == new_memory1.content
-
-    
-
 

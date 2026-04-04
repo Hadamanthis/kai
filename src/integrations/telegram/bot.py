@@ -12,23 +12,20 @@ from core.settings import settings
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        memory_repository = MemoryRepository(Session(create_engine(settings.database_url)))
-        memory_service = MemoryService(memory_repository)
-        llm_client = LLMClient()
+        graph = context.bot_data["graph"]
 
-        graph = create_graph(llm_client, memory_service)
+        session_id = str(update.effective_chat.id)
 
-        telegram_chat_id = str(update.effective_chat.id)
-
-        state = await graph.ainvoke(KaiState(session_id=telegram_chat_id, user_message=update.message.text))
+        state = await graph.ainvoke(KaiState(session_id=session_id, user_message=update.message.text))
 
         await update.message.reply_text(state["response"])
 
     except Exception as e:
         await update.message.reply_text("Desculpe, ocorreu um erro. Tente novamente.")
 
-def create_bot(token: str) -> ApplicationBuilder:
+def create_bot(token: str, graph) -> ApplicationBuilder:
     app = ApplicationBuilder().token(token).build()
+    app.bot_data["graph"] = graph
     app.add_handler(MessageHandler(filters.TEXT, handle_message))
     
     return app
