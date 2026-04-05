@@ -1,9 +1,7 @@
 from sqlalchemy import String, DateTime, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
+from core.models import Base
 from pgvector.sqlalchemy import Vector
-
-class Base(DeclarativeBase):
-    pass
 
 class Memory(Base):
     __tablename__ = "memories"

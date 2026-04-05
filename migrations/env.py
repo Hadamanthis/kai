@@ -11,7 +11,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from core.settings import settings
-from memory.models import Base
+from core.models import Base
 from pgvector.sqlalchemy import Vector
 
 

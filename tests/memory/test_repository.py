@@ -1,8 +1,7 @@
-from core.embeddings import EmbeddingClient
 from memory.models import Memory
 from memory.repository import MemoryRepository
 
-def test_respository_save_memory(db, embedding_client):
+def test_repository_save_memory(db, embedding_client):
     repo = MemoryRepository(db)
 
     new_memory = Memory(content="Isso é um teste.", session_id="teste_01")
