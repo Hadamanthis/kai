@@ -50,3 +50,15 @@ def test_repository_semantic_search(db, embedding_client):
 
     assert memories[0].content == new_memory1.content
 
+def test_exists_similar(db, embedding_client):
+    repo = MemoryRepository(db)
+
+    # Salvando uma memória
+    new_memory = Memory(content="Programação é muito legal.", session_id="teste_01")
+    new_memory.embedding = embedding_client.embed(new_memory.content)
+    repo.save(new_memory)
+
+    different_embedding = embedding_client.embed("Gosto de café.")
+
+    assert repo.exists_similar(new_memory.embedding, 0.15) == True
+    assert repo.exists_similar(different_embedding, 0.15) == False

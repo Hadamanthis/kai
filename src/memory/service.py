@@ -8,8 +8,12 @@ class MemoryService:
         self.memory_repository = memory_repository
         self.embedding_client = embedding_client or EmbeddingClient()
 
-    def save(self, memory: Memory) -> Memory:
+    def save(self, memory: Memory) -> Memory | None:
         memory.embedding = self.embedding_client.embed(memory.content)
+
+        if self.memory_repository.exists_similar(memory.embedding):
+            return None
+
         return self.memory_repository.save(memory)
 
     def get_all(self) -> list[Memory]:

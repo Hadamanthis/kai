@@ -26,3 +26,12 @@ class MemoryRepository:
         ).scalars().all()
 
         return list(results)
+    
+    def exists_similar(self, embedding: list[float], threshold: float = 0.15) -> bool:
+        results = self.db.execute(
+            select(Memory)
+            .where(Memory.embedding.cosine_distance(embedding) < threshold)
+            .limit(1)
+        ).scalars().all()
+
+        return len(results) > 0

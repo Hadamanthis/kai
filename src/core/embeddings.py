@@ -3,6 +3,7 @@ import os
 
 from sentence_transformers import SentenceTransformer
 
+# Suprimindo warnings do sentence-transformers
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 logging.getLogger("huggingface_hub.utils._auth").setLevel(logging.ERROR)

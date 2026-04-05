@@ -14,6 +14,7 @@ def test_service_save_memory():
 
     memory = Memory(content="Gosta de Python.", session_id="test_01")
     memory_repository.save.return_value = memory
+    memory_repository.exists_similar.return_value = False
 
     result = memory_service.save(memory)
 
@@ -48,4 +49,12 @@ def test_service_semantic_search_memory():
     assert memories[0].content == "Programação é muito legal."
 
 
-        
+def test_service_not_save_duplicated_memory():
+    memory_service, memory_repository, embedding_client = make_service()
+    memory_repository.exists_similar.return_value = True
+
+    saved_memory = memory_service.save(Memory(content="Gosta de Python.", session_id="test_01"))
+
+    assert saved_memory == None
+    memory_repository.exists_similar.assert_called_once()
+    memory_repository.save.assert_not_called()
