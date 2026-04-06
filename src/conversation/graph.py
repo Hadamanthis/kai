@@ -4,12 +4,13 @@ from core.embeddings import EmbeddingClient
 from core.llm_client import LLMClient
 from langgraph.graph import StateGraph, START, END
 from memory.service import MemoryService
+from user.service import UserService
 
-def create_graph(llm_client: LLMClient, memory_service: MemoryService):
+def create_graph(llm_client: LLMClient, memory_service: MemoryService, user_service: UserService):
     graph = StateGraph(KaiState)
 
     graph.add_node("retrieve_memory", retrieve_memory(memory_service))
-    graph.add_node("respond", respond(llm_client))
+    graph.add_node("respond", respond(llm_client, user_service))
     graph.add_node("memorize", memorize(llm_client, memory_service))
 
     graph.add_edge(START, "retrieve_memory")

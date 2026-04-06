@@ -1,34 +1,49 @@
 from unittest.mock import MagicMock, patch
 from conversation.nodes import respond, retrieve_memory, memorize
 from conversation.state import KaiState
+from core.llm_client import LLMClient
 from memory.models import Memory
+from user.service import UserService
 
 def make_state(**kwargs) -> KaiState:
     defaults = {
         "session_id": "test_session",
+        "username": "test_username",
         "user_message": "Eu gosto de Python.",
         "relevant_memories": [],
         "response": ""
     }
     return KaiState(**{**defaults, **kwargs})
 
-def test_respond_calls_lmm_and_set_response():
+def make_respond_services() -> tuple[MagicMock, MagicMock]:
     llm_client = MagicMock()
     llm_client.call.return_value = "Resposta do modelo"
 
+    user_service = MagicMock()
+    user = MagicMock()
+    user.name, user.bio, user.age = "test_user", "user_bio", 42
+    user_service.get_by_username.return_value = user
+
+    return llm_client, user_service
+
+def test_respond_calls_lmm_and_set_response():
+    llm_client, user_service = make_respond_services()
+
     initial_state = make_state(relevant_memories=["Usuário gosta de café"])
-    final_state = respond(llm_client)(initial_state)
+    final_state = respond(llm_client, user_service)(initial_state)
 
     llm_client.call.assert_called_once()
+    user_service.get_by_username.assert_called_once_with(initial_state["username"])
     assert final_state["response"] == "Resposta do modelo"
 
 def test_respond_with_empty_memories():
-    llm_client = MagicMock()
-    llm_client.call.return_value = "Resposta do modelo"
+    llm_client, user_service = make_respond_services()
 
     initial_state = make_state(relevant_memories=[])
-    final_state = respond(llm_client)(initial_state)
+    final_state = respond(llm_client, user_service)(initial_state)
 
+    llm_client.call.assert_called_once()
+    user_service.get_by_username.assert_called_once_with(initial_state["username"])
     assert final_state["response"] == "Resposta do modelo"
 
 def test_retrieve_memory_populates_relevant_memories():

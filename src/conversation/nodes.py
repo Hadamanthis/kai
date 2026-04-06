@@ -6,20 +6,39 @@ from memory.service import MemoryService
 from memory.models import Memory
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
+from user.service import UserService
 
 
-def respond(llm_client: LLMClient) -> Callable[[KaiState], KaiState]:
+def respond(llm_client: LLMClient, user_service: UserService) -> Callable[[KaiState], KaiState]:
 
     def _respond(state: KaiState) -> KaiState:
 
         memories_context = "\n".join(state["relevant_memories"])
 
         messages_template = ChatPromptTemplate([
-            ("system", "Você é o Kai, um assistente pessoal. Use essas memórias do usuário como contexto:\n{memories_context}"),
+            ("system", """
+                Você é o Kai, um assistente pessoal do usuário.
+             
+                Use as informações do usuário e as memórias relevantes para respondê-lo.
+                Não invente informações, se não tiver a informação diga que não sabe.
+
+                Perfil de usuário:
+                - Nome: {user_name}
+                - Bio: {user_bio}
+                - Idade: {user_age}
+             
+                Memórias relevantes:
+                {memories_context}
+            """),
             ("human", "{user_message}")
         ])
 
+        user = user_service.get_by_username(state["username"])
+
         messages = messages_template.invoke({
+            "user_name": user.name if user else "Usuário",
+            "user_bio": user.bio if user else "Não informado",
+            "user_age": user.age if user else "Não informado",
             "memories_context": memories_context,
             "user_message": state["user_message"]
         })
