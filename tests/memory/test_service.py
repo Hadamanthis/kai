@@ -12,7 +12,7 @@ def make_service():
 def test_service_save_memory():
     memory_service, memory_repository, embedding_client = make_service()
 
-    memory = Memory(content="Gosta de Python.", session_id="test_01")
+    memory = Memory(content="Gosta de Python.", username="teste_01", session_id="test_01")
     memory_repository.save.return_value = memory
     memory_repository.exists_similar.return_value = False
 
@@ -26,8 +26,8 @@ def test_service_save_memory():
 def test_service_get_all_memory():
     memory_service, memory_repository, _ = make_service()
     memory_repository.get_all.return_value = [
-        Memory(content="Gosta de Python.", session_id="test_01"),
-        Memory(content="Gosta de IA.", session_id="test_01"),
+        Memory(content="Gosta de Python.", username="teste_01", session_id="test_01"),
+        Memory(content="Gosta de IA.", username="teste_01", session_id="test_01"),
     ]
 
     memories = memory_service.get_all()
@@ -38,13 +38,13 @@ def test_service_get_all_memory():
 def test_service_semantic_search_memory():
     memory_service, memory_repository, embedding_client = make_service()
     memory_repository.search.return_value = [
-        Memory(content="Programação é muito legal.", session_id="teste_01")
+        Memory(content="Programação é muito legal.", username="teste_01", session_id="teste_01")
     ]
 
-    memories = memory_service.search("Amanhã eu irei programar.", limit=1)
+    memories = memory_service.search("Amanhã eu irei programar.", "teste_01", limit=1)
 
     embedding_client.embed.assert_called_once_with("Amanhã eu irei programar.")
-    memory_repository.search.assert_called_once_with("embedding_value", 1)
+    memory_repository.search.assert_called_once_with("embedding_value", "teste_01", 1)
 
     assert memories[0].content == "Programação é muito legal."
 
@@ -53,7 +53,7 @@ def test_service_not_save_duplicated_memory():
     memory_service, memory_repository, embedding_client = make_service()
     memory_repository.exists_similar.return_value = True
 
-    saved_memory = memory_service.save(Memory(content="Gosta de Python.", session_id="test_01"))
+    saved_memory = memory_service.save(Memory(content="Gosta de Python.", username="teste_01", session_id="test_01"))
 
     assert saved_memory == None
     memory_repository.exists_similar.assert_called_once()

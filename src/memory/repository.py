@@ -18,10 +18,11 @@ class MemoryRepository:
     def get_all(self) -> list[Memory]:
         return self.db.execute(select(Memory)).scalars().all()
     
-    def search(self, embedding: list[float], limit: int) -> list[Memory]:
+    def search(self, embedding: list[float], username: str, limit: int) -> list[Memory]:
         results = self.db.execute(
             select(Memory)
             .order_by(Memory.embedding.cosine_distance(embedding))
+            .where(Memory.username == username)
             .limit(limit)
         ).scalars().all()
 

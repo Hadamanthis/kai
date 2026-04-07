@@ -52,7 +52,7 @@ def respond(llm_client: LLMClient, user_service: UserService) -> Callable[[KaiSt
 def retrieve_memory(memory_service: MemoryService) -> Callable[[KaiState], KaiState]:
 
     def _retrieve_memory(state: KaiState):
-        memory_list = memory_service.search(state["user_message"]) # list[Memory]
+        memory_list = memory_service.search(state["user_message"], state["username"]) # list[Memory]
         state["relevant_memories"] = [memory.content for memory in memory_list] or [] # list[str]
         
         return state
@@ -83,7 +83,8 @@ def memorize(llm_client: LLMClient, memory_service: MemoryService) -> Callable[[
         for facts in result.facts:
             new_memory = Memory(
                 content=facts,
-                session_id=state["session_id"]
+                session_id=state["session_id"],
+                username=state["username"]
             )
             memory_service.save(new_memory)
         

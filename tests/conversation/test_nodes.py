@@ -49,14 +49,14 @@ def test_respond_with_empty_memories():
 def test_retrieve_memory_populates_relevant_memories():
     memory_service = MagicMock()
     memory_service.search.return_value = [
-        Memory(content="usuário gosta de Python", session_id="test_session"),
-        Memory(content="usuário não sabe cozinhar", session_id="test_session"),
+        Memory(content="usuário gosta de Python", username="test_username", session_id="test_session"),
+        Memory(content="usuário não sabe cozinhar", username="test_username", session_id="test_session"),
     ]
 
     initial_state = make_state()
     final_state = retrieve_memory(memory_service)(initial_state)
 
-    memory_service.search.assert_called_once_with("Eu gosto de Python.")
+    memory_service.search.assert_called_once_with("Eu gosto de Python.", "test_username")
     assert final_state["relevant_memories"] == ["usuário gosta de Python", "usuário não sabe cozinhar"]
 
 def test_retrieve_memory_empty_result():

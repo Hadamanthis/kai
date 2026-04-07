@@ -1,6 +1,6 @@
 from conversation.graph import create_graph
 from conversation.state import KaiState
-from fastapi import Request
+from fastapi import HTTPException, Request
 from fastapi.routing import APIRouter
 from pydantic import BaseModel
 from user.models import User
@@ -44,6 +44,9 @@ async def create_user(req: Request, request: UserCreateRequest) -> User | None:
             age=request.age
         )
     )
+
+    if saved_user is None:
+        raise HTTPException(status_code=409, detail="Username já existe")
 
     return saved_user
 
