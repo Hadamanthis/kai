@@ -11,7 +11,7 @@ class MemoryService:
     def save(self, memory: Memory) -> Memory | None:
         memory.embedding = self.embedding_client.embed(memory.content)
 
-        if self.memory_repository.exists_similar(memory.embedding):
+        if self.memory_repository.exists_similar(memory.embedding, memory.username):
             return None
 
         return self.memory_repository.save(memory)
@@ -22,3 +22,9 @@ class MemoryService:
     def search(self, message: str, username: str, limit: int = 5) -> list[Memory]:
         embeddings = self.embedding_client.embed(message)
         return self.memory_repository.search(embeddings, username, limit)
+    
+    def delete(self, memory_id: str) -> None:
+        self.memory_repository.delete(memory_id)
+
+    def get_all_by_username(self, username: str) -> list[Memory]:
+        return self.memory_repository.get_all_by_username(username)

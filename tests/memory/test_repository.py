@@ -65,5 +65,38 @@ def test_exists_similar(db, embedding_client):
 
     different_embedding = embedding_client.embed("Gosto de café.")
 
-    assert repo.exists_similar(new_memory.embedding, 0.15) == True
-    assert repo.exists_similar(different_embedding, 0.15) == False
+    assert repo.exists_similar(new_memory.embedding, new_memory.username, 0.15) == True
+    assert repo.exists_similar(different_embedding, new_memory.username, 0.15) == False
+
+def test_repository_get_all_by_username(db, embedding_client):
+    repo = MemoryRepository(db)
+
+    m1 = Memory(content="Gosta de Python.", session_id="s1", username="alice")
+    m1.embedding = embedding_client.embed(m1.content)
+    m2 = Memory(content="Gosta de café.", session_id="s1", username="alice")
+    m2.embedding = embedding_client.embed(m2.content)
+    m3 = Memory(content="Gosta de surf.", session_id="s1", username="bob")
+    m3.embedding = embedding_client.embed(m3.content)
+
+    repo.save(m1)
+    repo.save(m2)
+    repo.save(m3)
+
+    results = repo.get_all_by_username("alice")
+
+    assert len(results) == 2
+    assert all(m.username == "alice" for m in results)
+
+
+def test_repository_delete_memory(db, embedding_client):
+    repo = MemoryRepository(db)
+
+    m = Memory(content="Gosta de Python.", session_id="s1", username="alice")
+    m.embedding = embedding_client.embed(m.content)
+    repo.save(m)
+
+    assert len(repo.get_all()) == 1
+
+    repo.delete(m.id)
+
+    assert len(repo.get_all()) == 0

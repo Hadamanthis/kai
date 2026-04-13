@@ -1,3 +1,4 @@
+import json
 from typing import Callable
 
 from conversation.state import KaiState
@@ -67,26 +68,47 @@ def memorize(llm_client: LLMClient, memory_service: MemoryService) -> Callable[[
     def _memorize(state: KaiState):
         messages_template = ChatPromptTemplate([
             ("system", """
-                Extraia APENAS fatos pessoais sobre o usuário que ele explicitamente declarou sobre si mesmo. 
-                Exemplos válidos: 'usuário gosta de café', 'usuário mora em Fortaleza'
-                Exemplos inválidos: tópicos perguntados, assuntos da conversa, inferências. "
-                Se a mensagem for uma pergunta ou não contiver fatos pessoais, retorne lista vazia."""),
+            Extraia fatos relevantes sobre o usuário a partir da mensagem dele.
+            Capture:
+            - Interesses e hobbies mencionados
+            - Objetivos e intenções expressados ("quero aprender X", "estou estudando Y")
+            - Preferências e opiniões ("gosto de", "não gosto de")
+            - Informações pessoais relevantes não contidas no perfil
+            
+            Não capture:
+            - Perguntas feitas pelo usuário
+            - O nome do usuário — já registrado no perfil como {user_name}
+            - Inferências suas
+            
+            Se não houver nada relevante, retorne lista vazia.
+            
+            Responda APENAS com JSON válido, sem texto adicional, no formato:
+            {{"facts": ["fato 1", "fato 2"]}}
+            """),
             ("human", "{user_message}")
         ])
 
         messages = messages_template.invoke({
-            "user_message": state["user_message"]
+            "user_message": state["user_message"],
+            "user_name": state["username"]
         })
         
-        result = llm_client.call_structured(messages, ExtractedFacts)
+        result = llm_client.call(messages)
 
-        for facts in result.facts:
-            new_memory = Memory(
-                content=facts,
-                session_id=state["session_id"],
-                username=state["username"]
+        try:
+            data = json.loads(result)
+            facts = data.get("facts", [])
+        except json.JSONDecodeError:
+            facts = []
+
+        for fact in facts:
+            memory_service.save(
+                Memory(
+                    content=fact,
+                    session_id=state["session_id"],
+                    username=state["username"]
+                )
             )
-            memory_service.save(new_memory)
         
         return state
     

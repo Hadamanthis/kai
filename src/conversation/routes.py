@@ -1,26 +1,12 @@
-from conversation.graph import create_graph
 from conversation.state import KaiState
 from fastapi import HTTPException, Request
 from fastapi.routing import APIRouter
-from pydantic import BaseModel
+from memory.service import MemoryService
 from user.models import User
 from user.service import UserService
+from api.schemas import ChatRequest, ChatResponse, UserCreateRequest, UserResponse, MemoryResponse
 
 router = APIRouter()
-
-class ChatRequest(BaseModel):
-    session_id: str
-    username: str
-    user_message: str
-
-class UserCreateRequest(BaseModel):
-    username: str
-    name: str
-    bio: str | None
-    age: int | None
-
-class ChatResponse(BaseModel):
-    content: str
 
 @router.post("/chat")
 async def chat(req: Request, request: ChatRequest) -> ChatResponse:
@@ -33,7 +19,7 @@ async def chat(req: Request, request: ChatRequest) -> ChatResponse:
     return ChatResponse(content=state["response"])
 
 @router.post("/user/create")
-async def create_user(req: Request, request: UserCreateRequest) -> User | None:
+async def create_user(req: Request, request: UserCreateRequest) -> UserResponse | None:
     user_service: UserService = req.app.state.user_service
 
     saved_user = user_service.save(
@@ -51,7 +37,17 @@ async def create_user(req: Request, request: UserCreateRequest) -> User | None:
     return saved_user
 
 @router.get("/user/{username}")
-async def get_by_username(req: Request, username: str) -> User:
+async def get_by_username(req: Request, username: str) -> UserResponse:
     user_service: UserService = req.app.state.user_service
 
     return user_service.get_by_username(username)
+
+@router.delete("/memories/{memory_id}", status_code=204)
+async def delete_memory(req: Request, memory_id: int) -> None:
+    memory_service = req.app.state.memory_service
+    memory_service.delete(memory_id)
+
+@router.get("/memories/{username}")
+async def get_memories(req: Request, username: str) -> list[MemoryResponse]:
+    memory_service = req.app.state.memory_service
+    return memory_service.get_all_by_username(username)

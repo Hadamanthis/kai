@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 from memory.models import Memory
 
@@ -28,11 +28,30 @@ class MemoryRepository:
 
         return list(results)
     
-    def exists_similar(self, embedding: list[float], threshold: float = 0.15) -> bool:
+    def exists_similar(self, embedding: list[float], username: str, threshold: float = 0.15) -> bool:
         results = self.db.execute(
             select(Memory)
             .where(Memory.embedding.cosine_distance(embedding) < threshold)
+            .where(Memory.username == username)
             .limit(1)
         ).scalars().all()
 
         return len(results) > 0
+
+    def delete(self, memory_id: int) -> None:
+        result = self.db.execute(
+            select(Memory)
+            .where(Memory.id == memory_id)
+        ).scalars().one_or_none()
+
+        if result:
+            self.db.delete(result)
+            self.db.commit()
+    
+    def get_all_by_username(self, username: str) -> list[Memory]:
+        result = self.db.execute(
+            select(Memory)
+            .where(Memory.username == username)
+        ).scalars().all()
+
+        return result

@@ -12,7 +12,7 @@ def make_service():
 def test_service_save_memory():
     memory_service, memory_repository, embedding_client = make_service()
 
-    memory = Memory(content="Gosta de Python.", username="teste_01", session_id="test_01")
+    memory = Memory(content="Gosta de Python.", username="teste_01", session_id="teste_01")
     memory_repository.save.return_value = memory
     memory_repository.exists_similar.return_value = False
 
@@ -26,8 +26,8 @@ def test_service_save_memory():
 def test_service_get_all_memory():
     memory_service, memory_repository, _ = make_service()
     memory_repository.get_all.return_value = [
-        Memory(content="Gosta de Python.", username="teste_01", session_id="test_01"),
-        Memory(content="Gosta de IA.", username="teste_01", session_id="test_01"),
+        Memory(content="Gosta de Python.", username="teste_01", session_id="teste_01"),
+        Memory(content="Gosta de IA.", username="teste_01", session_id="teste_01"),
     ]
 
     memories = memory_service.get_all()
@@ -50,11 +50,31 @@ def test_service_semantic_search_memory():
 
 
 def test_service_not_save_duplicated_memory():
-    memory_service, memory_repository, embedding_client = make_service()
+    memory_service, memory_repository, _ = make_service()
     memory_repository.exists_similar.return_value = True
 
-    saved_memory = memory_service.save(Memory(content="Gosta de Python.", username="teste_01", session_id="test_01"))
+    saved_memory = memory_service.save(Memory(content="Gosta de Python.", username="teste_01", session_id="teste_01"))
 
     assert saved_memory == None
     memory_repository.exists_similar.assert_called_once()
     memory_repository.save.assert_not_called()
+
+def test_service_get_all_by_username():
+    memory_service, memory_repository, _ = make_service()
+    memory_repository.get_all_by_username.return_value = [
+        Memory(content="Gosta de Python.", session_id="teste_01", username="teste_01"),
+        Memory(content="Gosta de café.", session_id="teste_01", username="teste_01"),
+    ]
+
+    results = memory_service.get_all_by_username("teste_01")
+
+    memory_repository.get_all_by_username.assert_called_once_with("teste_01")
+    assert len(results) == 2
+
+
+def test_service_delete_memory():
+    memory_service, memory_repository, _ = make_service()
+
+    memory_service.delete(42)
+
+    memory_repository.delete.assert_called_once_with(42)

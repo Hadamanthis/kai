@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
     user_service = UserService(UserRepository(session))
     memory_service = MemoryService(MemoryRepository(session), EmbeddingClient())
     app.state.graph = create_graph(LLMClient(), memory_service, user_service)
-
+    app.state.memory_service = memory_service
     app.state.user_service = user_service
     
     yield
